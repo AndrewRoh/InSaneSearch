@@ -41,6 +41,14 @@ We have successfully updated the Insane Search Playground web application and th
 
 ## How to Run
 
+### Method 1: Double-click Launcher (Windows)
+Simply double-click the **[run.bat](file:///e:/Projects/InSaneSearch/run.bat)** file in the repository root.
+- It will automatically verify Python and Node.js environments.
+- Installs any missing dependencies.
+- Starts the FastAPI local server.
+- Opens `http://localhost:8000` automatically in your default browser.
+
+### Method 2: Manual Terminal Execution
 1. Make sure Node.js dependencies are installed:
    ```bash
    npm install playwright playwright-extra puppeteer-extra-plugin-stealth
