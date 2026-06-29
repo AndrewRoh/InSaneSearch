@@ -1,4 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Load config on startup
+    async function loadConfig() {
+        try {
+            const resp = await fetch('/api/config');
+            if (resp.ok) {
+                const config = await resp.json();
+                if (config.has_gemini_key) {
+                    const keyInput = document.getElementById('gemini-key');
+                    if (keyInput) {
+                        keyInput.placeholder = 'Default key loaded from server .env (optional to override)';
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Failed to load backend config:', e);
+        }
+    }
+    loadConfig();
+
     // UI Elements
     const form = document.getElementById('fetch-form');
     const toggleAdvanced = document.getElementById('toggle-advanced');

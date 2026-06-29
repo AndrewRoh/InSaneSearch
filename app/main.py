@@ -12,6 +12,16 @@ SKILL_ROOT = os.path.abspath(os.path.join(HERE, "..", "skills", "insane-search")
 if SKILL_ROOT not in sys.path:
     sys.path.insert(0, SKILL_ROOT)
 
+# Load .env manually if present in the project root
+env_path = os.path.abspath(os.path.join(HERE, "..", ".env"))
+if os.path.exists(env_path):
+    with open(env_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                os.environ[k.strip()] = v.strip()
+
 try:
     from engine import fetch
 except ImportError as e:
@@ -98,15 +108,24 @@ def api_fetch(req: FetchRequest):
         payload = result.to_dict()
         payload["content"] = result.content
         
+        # Fallback to server env key if not provided in UI request
+        gemini_key = req.gemini_key or os.getenv("GEMINI_API_KEY")
+        
         # Process content with Gemini if API key and prompt are provided
-        if result.ok and req.gemini_key and req.prompt:
-            payload["llm_output"] = call_gemini(req.gemini_key, result.content, req.prompt)
-        elif not result.ok and req.gemini_key and req.prompt:
+        if result.ok and gemini_key and req.prompt:
+            payload["llm_output"] = call_gemini(gemini_key, result.content, req.prompt)
+        elif not result.ok and gemini_key and req.prompt:
             payload["llm_output"] = "Error: Fetch failed, skipping Gemini analysis."
         
         return JSONResponse(content=payload)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {str(e)}")
+
+@app.get("/api/config")
+def api_config():
+    return {
+        "has_gemini_key": bool(os.getenv("GEMINI_API_KEY"))
+    }
 
 # Mount static files
 static_dir = os.path.join(HERE, "static")
