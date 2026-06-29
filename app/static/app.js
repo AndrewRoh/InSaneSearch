@@ -28,6 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const traceTbody = document.getElementById('trace-tbody');
     const rawHtmlViewer = document.getElementById('raw-html-viewer');
     const jsonViewer = document.getElementById('json-viewer');
+    const geminiOutputViewer = document.getElementById('gemini-output-viewer');
+    const downloadCsvBtn = document.getElementById('download-csv-btn');
 
     // Advanced Section Toggle
     toggleAdvanced.addEventListener('click', () => {
@@ -50,25 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Example Buttons Click Handler
-    const exampleBtns = document.querySelectorAll('.example-btn');
-    exampleBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.getElementById('url').value = btn.getAttribute('data-url') || '';
-            document.getElementById('selectors').value = btn.getAttribute('data-selectors') || '';
-            document.getElementById('device').value = btn.getAttribute('data-device') || 'auto';
-            document.getElementById('hint-referer').value = btn.getAttribute('data-referer') || '';
-            document.getElementById('hint-impersonate').value = btn.getAttribute('data-impersonate') || '';
-            document.getElementById('force-playwright').checked = btn.getAttribute('data-force-pw') === 'true';
-            
-            // Auto open advanced settings if there are selectors or other customized attributes
-            if (btn.getAttribute('data-selectors') || btn.getAttribute('data-force-pw') === 'true') {
-                toggleAdvanced.classList.add('active');
-                advancedContent.classList.add('active');
-            }
-        });
-    });
-
     // Form Submission
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -80,6 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const refererValue = document.getElementById('hint-referer').value;
         const impersonateValue = document.getElementById('hint-impersonate').value;
         const forcePlaywrightValue = document.getElementById('force-playwright').checked;
+        const promptValue = document.getElementById('prompt').value.trim();
+        const geminiKeyValue = document.getElementById('gemini-key').value.trim();
         
         if (!urlValue) return;
 
@@ -100,7 +85,9 @@ document.addEventListener('DOMContentLoaded', () => {
             device: deviceValue,
             timeout: timeoutValue,
             user_hint: Object.keys(user_hint).length > 0 ? user_hint : null,
-            force_playwright: forcePlaywrightValue
+            force_playwright: forcePlaywrightValue,
+            prompt: promptValue || null,
+            gemini_key: geminiKeyValue || null
         };
 
         try {
@@ -227,5 +214,42 @@ document.addEventListener('DOMContentLoaded', () => {
         const cleanJson = { ...data };
         delete cleanJson.content; // Omit huge HTML content string from metadata tab
         jsonViewer.textContent = JSON.stringify(cleanJson, null, 2);
+
+        // 5. Render Gemini Response
+        geminiOutputViewer.value = data.llm_output || '';
+        
+        // Auto-switch tabs based on LLM response availability
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabPanes.forEach(pane => pane.classList.remove('active'));
+        if (data.llm_output) {
+            document.querySelector('[data-tab="gemini"]').classList.add('active');
+            document.getElementById('tab-gemini').classList.add('active');
+        } else {
+            document.querySelector('[data-tab="preview"]').classList.add('active');
+            document.getElementById('tab-preview').classList.add('active');
+        }
+
+        // Show/hide download button for CSV if LLM output contains rows
+        if (data.llm_output && (data.llm_output.includes(',') || data.llm_output.includes('\n'))) {
+            downloadCsvBtn.classList.remove('hidden');
+            downloadCsvBtn.onclick = () => {
+                let csvContent = data.llm_output;
+                // Strip markdown code fences if Gemini wrapped it in ```csv ... ```
+                const match = csvContent.match(/```(?:csv)?([\s\S]*?)```/);
+                if (match) {
+                    csvContent = match[1].trim();
+                }
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", "extracted_data.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+        } else {
+            downloadCsvBtn.classList.add('hidden');
+        }
     }
 });

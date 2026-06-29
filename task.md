@@ -1,22 +1,19 @@
-# Task List - Insane Search Web UI Playground Updates
+# Task List - Playground Prompt & Gemini API Integration
 
-- [x] **YouTube Subtitles Engine Support**
-  - [x] Modify `skills/insane-search/engine/phase0.py` `_youtube` to fallback to `sys.executable -m yt_dlp`
-  - [x] Implement subtitles parsing (ko/en) from timedtext URL in `_youtube`
-  - [x] Verify YouTube subtitle parsing works via automated script
+- [ ] **Web Backend Updates**
+  - [ ] Update `app/main.py` models to accept `prompt` and `gemini_key`
+  - [ ] Implement `call_gemini` helper function using `curl_cffi` REST call
+  - [ ] Call `call_gemini` in `api_fetch` if parameters are provided and return `llm_output`
 
-- [x] **Playground App Backend Updates**
-  - [x] Update `app/main.py` `FetchRequest` to accept `force_playwright` parameter
-  - [x] Support `force_playwright` in `api_fetch` by setting `max_attempts = 0`
+- [ ] **Web UI Frontend Updates**
+  - [ ] Remove Examples section from `app/static/index.html`
+  - [ ] Add Prompt textarea and Gemini API key password input in `app/static/index.html`
+  - [ ] Add "LLM Response" tab button and pane in `app/static/index.html`
+  - [ ] Update CSS styles in `app/static/style.css` for new inputs and LLM Response tab
+  - [ ] Bind custom prompt and api key inputs in `app/static/app.js` payload
+  - [ ] Renders `llm_output` in "LLM Response" tab, auto-switch to it, and implement "Download CSV" functionality in `app/static/app.js`
 
-- [x] **Playground App Frontend Updates**
-  - [x] Update `app/static/index.html` with an "Examples" panel in the sidebar
-  - [x] Add "Force Playwright" checkbox in the advanced parameters section
-  - [x] Update `app/static/app.js` to handle sidebar examples click and auto-populate settings
-  - [x] Bind "Force Playwright" checkbox state in API payload
-
-- [x] **Testing & Verification**
-  - [x] Verify Example 1 (YouTube subtitles) via local server
-  - [x] Verify Example 2 (Naver Shopping) via local server
-  - [x] Verify Example 3 (AliExpress) via local server
-  - [x] Document final walkthrough
+- [ ] **Testing & Verification**
+  - [ ] Start server and verify that UI renders correctly without Examples panel
+  - [ ] Verify custom prompt and Gemini API processing on a target URL
+  - [ ] Document final walkthrough
